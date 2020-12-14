@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/io_client.dart';
 import 'package:lipsum/lipsum.dart' as lipsum;
-import 'package:chroma/image_swatch.dart';
+import 'package:chroma/chroma.dart';
 import 'package:image/image.dart' hide Color, Image;
 
 void main() {
@@ -14,12 +14,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Chroma Example',
-      home: ImagePalette(),
+      home: ImagePaletteScreen(),
     );
   }
 }
 
-class ImagePalette extends StatefulWidget {
+class ImagePaletteScreen extends StatefulWidget {
   final exampleImageURLs = [
     'https://images.pexels.com/photos/247431/pexels-photo-247431.jpeg?auto=compress&cs=tinysrgb&h=512&w=512',
     'https://images.pexels.com/photos/87403/cheetah-leopard-animal-big-87403.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=512&w=512',
@@ -36,11 +36,11 @@ class ImagePalette extends StatefulWidget {
   ];
 
   @override
-  _ImagePaletteState createState() => _ImagePaletteState();
+  _ImagePaletteScreenState createState() => _ImagePaletteScreenState();
 }
 
-class _ImagePaletteState extends State<ImagePalette> {
-  Map<List<int>, ImageSwatch> images = {};
+class _ImagePaletteScreenState extends State<ImagePaletteScreen> {
+  Map<List<int>, ImagePalette> palettes = {};
   @override
   void initState() {
     super.initState();
@@ -50,13 +50,16 @@ class _ImagePaletteState extends State<ImagePalette> {
   Future _processExampleImages() async {
     final http = IOClient();
     final futures = <Future>[];
-    widget.exampleImageURLs.forEach((url) {
+    widget.exampleImageURLs
+        // .sublist(2, 5)
+
+        .forEach((url) {
       futures.add(http.get(url).then((response) {
         if (response.statusCode == 200) {
           print('Downloaded $url');
           setState(() {
-            images[response.bodyBytes] =
-                ImageSwatch.fromJpg(response.bodyBytes);
+            palettes[response.bodyBytes] =
+                ImagePalette.fromJpg(response.bodyBytes);
           });
         } else
           print('Failed to download image $url #${response.statusCode}');
@@ -71,18 +74,20 @@ class _ImagePaletteState extends State<ImagePalette> {
           title: Text('Image Palette Examples'),
         ),
         body: PageView(
-          children: images.keys.map<Widget>((image) {
+          children: palettes.keys.map<Widget>((image) {
             var bgColor = Color.fromARGB(
-                255,
-                getRed(images[image].background),
-                getGreen(images[image].background),
-                getBlue(images[image].background));
+              255,
+              (palettes[image].dark.bg.red * 255).toInt(),
+              (palettes[image].dark.bg.green * 255).toInt(),
+              (palettes[image].dark.bg.blue * 255).toInt(),
+            );
 
             var fgColor = Color.fromARGB(
-                255,
-                getRed(images[image].foreground),
-                getGreen(images[image].foreground),
-                getBlue(images[image].foreground));
+              255,
+              (palettes[image].dark.fg.red * 255).toInt(),
+              (palettes[image].dark.fg.green * 255).toInt(),
+              (palettes[image].dark.fg.blue * 255).toInt(),
+            );
 
             return Container(
                 color: bgColor,
@@ -133,8 +138,8 @@ class SingleImagePaletteDebug extends StatefulWidget {
 }
 
 class _SingleImagePaletteDebugState extends State<SingleImagePaletteDebug> {
-  ImageSwatch swatch;
-  Map<Image, ImageSwatch> images = {};
+  ImagePalette swatch;
+  Map<Image, ImagePalette> palettes = {};
   @override
   void initState() {
     super.initState();
@@ -143,17 +148,25 @@ class _SingleImagePaletteDebugState extends State<SingleImagePaletteDebug> {
 
   Future _process() async {
     setState(() {
-      swatch = ImageSwatch.fromJpg(widget.jpgBytes, debug: true);
+      swatch = ImagePalette.fromJpg(widget.jpgBytes, debug: true);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    var bgColor = Color.fromARGB(255, getRed(swatch.background),
-        getGreen(swatch.background), getBlue(swatch.background));
+    var bgColor = Color.fromARGB(
+      255,
+      (swatch.dark.bg.red * 255).toInt(),
+      (swatch.dark.bg.green * 255).toInt(),
+      (swatch.dark.bg.blue * 255).toInt(),
+    );
 
-    var fgColor = Color.fromARGB(255, getRed(swatch.foreground),
-        getGreen(swatch.foreground), getBlue(swatch.foreground));
+    var fgColor = Color.fromARGB(
+      255,
+      (swatch.dark.fg.red * 255).toInt(),
+      (swatch.dark.fg.green * 255).toInt(),
+      (swatch.dark.fg.blue * 255).toInt(),
+    );
 
     return Scaffold(
         appBar: AppBar(
@@ -210,18 +223,18 @@ class _SingleImagePaletteDebugState extends State<SingleImagePaletteDebug> {
                                             TableCell(
                                                 child: Container(
                                               color: Color.fromARGB(
-                                                  255,
-                                                  getRed(color),
-                                                  getGreen(color),
-                                                  getBlue(color)),
+                                                255,
+                                                (color.red * 255).toInt(),
+                                                (color.green * 255).toInt(),
+                                                (color.blue * 255).toInt(),
+                                              ),
                                               height: 56,
                                             )),
                                             TableCell(
                                                 child: Container(
                                                     color: Colors.white,
                                                     child: Text(
-                                                      debug.colorDebugText(
-                                                          color),
+                                                      "${color.luminance} ${color.toHsl().saturation} ${color.toHsl().lightness}",
                                                     )))
                                           ]))
                                       .toList(),
