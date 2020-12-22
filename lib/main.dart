@@ -40,7 +40,7 @@ class ImagePaletteScreen extends StatefulWidget {
 }
 
 class _ImagePaletteScreenState extends State<ImagePaletteScreen> {
-  Map<List<int>, ImagePalette> palettes = {};
+  Map<List<int>, UiTheme> palettes = {};
   @override
   void initState() {
     super.initState();
@@ -58,8 +58,7 @@ class _ImagePaletteScreenState extends State<ImagePaletteScreen> {
         if (response.statusCode == 200) {
           print('Downloaded $url');
           setState(() {
-            palettes[response.bodyBytes] =
-                ImagePalette.fromJpg(response.bodyBytes);
+            palettes[response.bodyBytes] = UiTheme.fromJpg(response.bodyBytes);
           });
         } else
           print('Failed to download image $url #${response.statusCode}');
@@ -77,16 +76,16 @@ class _ImagePaletteScreenState extends State<ImagePaletteScreen> {
           children: palettes.keys.map<Widget>((image) {
             var bgColor = Color.fromARGB(
               255,
-              (palettes[image].dark.bg.red * 255).toInt(),
-              (palettes[image].dark.bg.green * 255).toInt(),
-              (palettes[image].dark.bg.blue * 255).toInt(),
+              (palettes[image].bg.red * 255).toInt(),
+              (palettes[image].bg.green * 255).toInt(),
+              (palettes[image].bg.blue * 255).toInt(),
             );
 
             var fgColor = Color.fromARGB(
               255,
-              (palettes[image].dark.fg.red * 255).toInt(),
-              (palettes[image].dark.fg.green * 255).toInt(),
-              (palettes[image].dark.fg.blue * 255).toInt(),
+              (palettes[image].fg.red * 255).toInt(),
+              (palettes[image].fg.green * 255).toInt(),
+              (palettes[image].fg.blue * 255).toInt(),
             );
 
             return Container(
@@ -138,8 +137,8 @@ class SingleImagePaletteDebug extends StatefulWidget {
 }
 
 class _SingleImagePaletteDebugState extends State<SingleImagePaletteDebug> {
-  ImagePalette swatch;
-  Map<Image, ImagePalette> palettes = {};
+  UiTheme swatch;
+  Map<Image, UiTheme> palettes = {};
   @override
   void initState() {
     super.initState();
@@ -148,7 +147,7 @@ class _SingleImagePaletteDebugState extends State<SingleImagePaletteDebug> {
 
   Future _process() async {
     setState(() {
-      swatch = ImagePalette.fromJpg(widget.jpgBytes, debug: true);
+      swatch = UiTheme.fromJpg(widget.jpgBytes, debug: true);
     });
   }
 
@@ -156,16 +155,16 @@ class _SingleImagePaletteDebugState extends State<SingleImagePaletteDebug> {
   Widget build(BuildContext context) {
     var bgColor = Color.fromARGB(
       255,
-      (swatch.dark.bg.red * 255).toInt(),
-      (swatch.dark.bg.green * 255).toInt(),
-      (swatch.dark.bg.blue * 255).toInt(),
+      (swatch.bg.red * 255).toInt(),
+      (swatch.bg.green * 255).toInt(),
+      (swatch.bg.blue * 255).toInt(),
     );
 
     var fgColor = Color.fromARGB(
       255,
-      (swatch.dark.fg.red * 255).toInt(),
-      (swatch.dark.fg.green * 255).toInt(),
-      (swatch.dark.fg.blue * 255).toInt(),
+      (swatch.fg.red * 255).toInt(),
+      (swatch.fg.green * 255).toInt(),
+      (swatch.fg.blue * 255).toInt(),
     );
 
     return Scaffold(
@@ -198,49 +197,6 @@ class _SingleImagePaletteDebugState extends State<SingleImagePaletteDebug> {
                               fontWeight: FontWeight.bold),
                         )),
                       ),
-                      ...swatch.debug.reversed
-                          .map((debug) => Container(
-                                color: Colors.white,
-                                child: Table(columnWidths: {
-                                  0: FixedColumnWidth(64)
-                                }, children: [
-                                  TableRow(children: [
-                                    TableCell(child: Container()),
-                                    TableCell(
-                                        child: Container(
-                                            height: 64,
-                                            padding: EdgeInsets.all(16),
-                                            child: Text(
-                                              debug.title,
-                                              style: TextStyle(
-                                                  color: Colors.black,
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.bold),
-                                            )))
-                                  ]),
-                                  ...debug.colors.keys
-                                      .map((color) => TableRow(children: [
-                                            TableCell(
-                                                child: Container(
-                                              color: Color.fromARGB(
-                                                255,
-                                                (color.red * 255).toInt(),
-                                                (color.green * 255).toInt(),
-                                                (color.blue * 255).toInt(),
-                                              ),
-                                              height: 56,
-                                            )),
-                                            TableCell(
-                                                child: Container(
-                                                    color: Colors.white,
-                                                    child: Text(
-                                                      "${color.luminance} ${color.toHsl().saturation} ${color.toHsl().lightness}",
-                                                    )))
-                                          ]))
-                                      .toList(),
-                                ]),
-                              ))
-                          .toList()
                     ],
                   ),
                 )));
